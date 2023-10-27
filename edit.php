@@ -1,6 +1,11 @@
 <?php
 
 include 'functions.php';
+csrf();
+
+if (isset($_POST['submit']) && !hash_equals($_SESSION['csrf'], $_POST['csrf'])) {
+    die();
+}
 
 $config = include 'config.php';
 
@@ -104,6 +109,8 @@ if (isset($receta) && $receta) {
     $tiempo_estimado = escapar($receta["tiempo_estimado"]);
     $created_at = escapar($receta["created_at"]);
     $updated_at = escapar($receta["updated_at"]);
+    $csrf = escapar($_SESSION['csrf']);
+
     echo <<<EOT
         <div class="container">
             <div class="row">
@@ -139,6 +146,7 @@ if (isset($receta) && $receta) {
                             <input type="submit" name="submit" class="btn btn-primary" value="Actualizar">
                             <a class="btn btn-primary" href="index.php">Regresar al inicio</a>
                         </div>
+                        <input name="csrf" type="hidden" value="$csrf">
                     </form>
                 </div>
             </div>

@@ -1,5 +1,10 @@
 <?php
 require_once 'functions.php';
+csrf();
+
+if (isset($_POST['submit']) && !hash_equals($_SESSION['csrf'], $_POST['csrf'])) {
+    die();
+}
 
 $error = false;
 $config = include 'config.php';
@@ -43,6 +48,8 @@ if ($error) {
     EOF;
 }
 
+$csrf = escapar($_SESSION['csrf']);
+
 echo <<<EOF
     <div class="container">
         <div class="row">
@@ -54,6 +61,7 @@ echo <<<EOF
                         <input type="text" id="nombre" name="nombre" placeholder="Buscar por nombre" class="form-control">
                     </div>
                     <button type="submit" name="submit" class="btn btn-primary">Ver resultados</button>
+                    <input name="csrf" type="hidden" value="$csrf">
                 </form>
             </div>
         </div>
@@ -62,7 +70,7 @@ echo <<<EOF
     <div class="container">
         <div class="row">
             <div class="col-md-12">
-                <h2 class="mt-3">Lista de alumnos</h2>
+                <h2 class="mt-3">Lista de recetas</h2>
                 <table class="table">
                     <thead>
                     <tr>
