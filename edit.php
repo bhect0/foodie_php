@@ -20,38 +20,29 @@ if (!isset($_GET['id'])) { // TODO: || id no valido
 }
 
 if (isset($_POST['submit'])) {
-    try {
-        $dsn = 'mysql:host=' . $config['db']['host'] . ';dbname=' . $config['db']['name'];
-        $conexion = new PDO($dsn, $config['db']['user'], $config['db']['pass'], $config['db']['options']);
+    $receta = [
+        "id" => $_GET['id'],
+        "titulo" => $_POST['nombre'],
+        "descripcion" => $_POST['descripcion'],
+        "foto" => $_POST['foto'],
+        "pasos" => $_POST['pasos'],
+        "ingredientes" => $_POST['ingredientes'],
+        "tiempo_estimado" => $_POST['tiempo_estimado']
+    ];
 
-        $receta = [
-            "id" => $_GET['id'],
-            "titulo" => $_POST['nombre'],
-            "descripcion" => $_POST['descripcion'],
-            "foto" => $_POST['foto'],
-            "pasos" => $_POST['pasos'],
-            "ingredientes" => $_POST['ingredientes'],
-            "tiempo_estimado" => $_POST['tiempoestimado']
-        ];
+    // TODO: doc
+    $sql = "UPDATE receta SET
+    titulo = :titulo,
+    descripcion = :descripcion,
+    foto = :foto,
+    pasos = :pasos,
+    ingredientes = :ingredientes,
+    tiempo_estimado = :tiempo_estimado,
+    updated_at = NOW()
+    WHERE id = :id";
 
-        // TODO: doc
-        $consultaSQL = "UPDATE receta SET
-        titulo = :titulo,
-        descripcion = :descripcion,
-        foto = :foto,
-        pasos = :pasos,
-        ingredientes = :ingredientes,
-        tiempo_estimado = :tiempo_estimado,
-        updated_at = NOW()
-        WHERE id = :id";
+    exec_query($sql, $receta);
 
-        $consulta = $conexion->prepare($consultaSQL);
-        $consulta->execute($receta);
-
-    } catch(PDOException $error) {
-        $resultado['error'] = true;
-        $resultado['mensaje'] = $error->getMessage();
-    }
 }
 
 if ($resultado['error']) {
@@ -64,34 +55,24 @@ if ($resultado['error']) {
     </div>';
     die;
 }
-try {
-    $dsn = 'mysql:host='.$config['db']['host'].';dbname='.$config['db']['name'];
-    $conexion = new PDO($dsn, $config['db']['user'], $config['db']['pass'], $config['db']['options']);
 
     $id = $_GET['id'];
-    $sql = "SELECT * FROM receta WHERE id =".$id;
+    $sql = "SELECT * FROM receta WHERE id ='$id'";
 
-    $sentencia = $conexion->prepare($sql);
-    $sentencia->execute();
-
-    $receta = $sentencia->fetch(PDO::FETCH_ASSOC);
+    $receta = get_record($sql);
 
     if (!$receta) {
         $resultado['error'] = true;
         $resultado['mensaje'] = 'No se ha encontrado la receta';
     }
 
-} catch(PDOException $error) {
-    $resultado['error'] = true;
-    $resultado['mensaje'] = $error->getMessage();
-}
 
 if (isset($_POST['submit']) && !$resultado['error']) {
     echo <<<EOT
         <div class="container mt-2">
             <div class="row">
                 <div class="col-md-12">
-                    <div class="alert alert-success" role="alert">El alumno ha sido actualizado correctamente</div>
+                    <div class="alert alert-success" role="alert">La receta ha sido actualizada correctamente</div>
                 </div>
             </div>
         </div>
@@ -139,8 +120,8 @@ if (isset($receta) && $receta) {
                             <input type="text" name="ingredientes" id="ingredientes" value="$ingredientes" class="form-control">
                         </div>
                         <div class="form-group">
-                            <label for="tiempoestimado">Tiempo estimado</label>
-                            <input type="text" name="tiempoestimado" id="tiempoestimado" value="$tiempo_estimado" class="form-control">
+                            <label for="tiempo_estimado">Tiempo estimado</label>
+                            <input type="text" name="tiempo_estimado" id="tiempo_estimado" value="$tiempo_estimado" class="form-control">
                         </div>
                         <div class="form-group">
                             <input type="submit" name="submit" class="btn btn-primary" value="Actualizar">

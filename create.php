@@ -8,36 +8,26 @@ if (isset($_POST['submit']) && !hash_equals($_SESSION['csrf'], $_POST['csrf'])) 
 }
 
 if (isset($_POST['submit'])) {
-    $resultado = [
-        'error' => false,
-        'mensaje' => 'Receta ' . escapar($_POST['nombre']) . ' creada con éxito'
+
+    $receta = [
+        'titulo' => $_POST['nombre'],
+        'descripcion' => $_POST['descripcion'],
+        'foto' => $_POST['foto'],
+        'pasos' => $_POST['pasos'],
+        'ingredientes' => $_POST['ingredientes'],
+        'tiempo_estimado' => $_POST['tiempo_estimado']
     ];
 
-    $config = include 'config.php';
+    $sql = "INSERT INTO receta (titulo, descripcion, foto, pasos, ingredientes, tiempo_estimado) values (:" . implode(', :', array_keys($receta)) . ")";
 
-    try {
-        $dsn = 'mysql:host=' . $config['db']['host'] . ';dbname=' . $config['db']['name'];
-        $conexion = new PDO($dsn, $config['db']['user'], $config['db']['pass'], $config['db']['options']);
-
-        // Código que insertará un alumno
-        $receta = [
-            "titulo" => $_POST['nombre'],
-            "descripcion" => $_POST['descripcion'],
-            "foto" => $_POST['foto'],
-            "pasos" => $_POST['pasos'],
-            "ingredientes" => $_POST['ingredientes'],
-            "tiempoestimado" => $_POST['tiempoestimado']
-        ];
-
-        $consultaSQL = "INSERT INTO receta (titulo, descripcion, foto, pasos, ingredientes, tiempo_estimado) values (:" . implode(", :", array_keys($receta)) . ")";
-        echo $consultaSQL;
-        $sentencia = $conexion->prepare($consultaSQL);
-        $sentencia->execute($receta);
-
-    } catch (PDOException $error) {
+    if (exec_query($sql, $receta)) {
+        $resultado['error'] = false;
+        $resultado['mensaje'] = 'Receta creada con éxito';
+    } else {
         $resultado['error'] = true;
-        $resultado['mensaje'] = $error->getMessage();
+        $resultado['mensaje'] = 'Error al crear la receta';
     }
+
 }
 
 
@@ -93,8 +83,8 @@ echo <<<EOT
                         <input type="text" name="ingredientes" id="ingredientes" class="form-control">
                     </div>
                     <div class="form-group">
-                        <label for="tiempoestimado">Tiempo estimado</label>
-                        <input type="text" name="tiempoestimado" id="tiempoestimado" class="form-control">
+                        <label for="tiempo_estimado">Tiempo estimado</label>
+                        <input type="text" name="tiempo_estimado" id="tiempo_estimado" class="form-control">
                     </div>
                     <div class="form-group">
                         <input type="submit" name="submit" class="btn btn-primary" value="Enviar">

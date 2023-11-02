@@ -11,41 +11,28 @@ $config = include 'config.php';
 
 $recetas = [];
 
-try {
-    $dsn = 'mysql:host=' . $config['db']['host'] . ';dbname=' . $config['db']['name'];
-    $conexion = new PDO($dsn, $config['db']['user'], $config['db']['pass'], $config['db']['options']);
-
-    if (isset($_POST['apellido'])) {
-        $sql = "SELECT * FROM receta WHERE titulo LIKE '%" . $_POST['nombre'] . "%'";
-    } else {
-        $sql = "SELECT * FROM receta";
-    }
-
-    $sentencia = $conexion->prepare($sql);
-    $sentencia->execute();
-
-    $recetas = $sentencia->fetchAll();
-
-    $titulo = isset($_POST['apellido']) ? 'Lista de alumnos (' . $_POST['apellido'] . ')' : 'Lista de alumnos';
-
-} catch(PDOException $error) {
-    $error = $error->getMessage();
+if (isset($_POST['nombre'])) {
+    $sql = "SELECT * FROM receta WHERE titulo LIKE '%" . $_POST['nombre'] . "%'";
+} else {
+    $sql = "SELECT * FROM receta";
 }
+
+$recetas = get_records($sql);
 
 include "templates/header.php";
 
-if ($error) {
-    echo <<<EOF
-        <div class="container mt-2">
-            <div class="row">
+if (!$recetas) {
+    echo <<<EOT
+    <div class="container mt-2">
+          <div class="row">
                 <div class="col-md-12">
-                    <div class="alert alert-danger" role="alert">
-                        $error
-                    </div>
+                      <div class="alert alert-danger" role="alert">
+                          No se han encontrado recetas. 
+                      </div>
                 </div>
-            </div>
-        </div>
-    EOF;
+          </div>
+    </div>
+    EOT;
 }
 
 $csrf = escapar($_SESSION['csrf']);
@@ -88,38 +75,41 @@ echo <<<EOF
                     </thead>
                     <tbody>
 EOF;
-                    if ($recetas && $sentencia->rowCount() > 0) {
-                        foreach ($recetas as $receta) {
-                            $id = escapar($receta["id"]);
-                            $titulo = escapar($receta["titulo"]);
-                            $descripcion = escapar($receta["descripcion"]);
-                            $foto = escapar($receta["foto"]);
-                            $pasos = escapar($receta["pasos"]);
-                            $ingredientes = escapar($receta["ingredientes"]);
-                            $tiempo_estimado = escapar($receta["tiempo_estimado"]);
-                            $created_at = escapar($receta["created_at"]);
-                            $updated_at = escapar($receta["updated_at"]);
 
-                            echo <<<EOF
-                                <tr>
-                                    <td>$id</td>
-                                    <td>$titulo</td>
-                                    <td>$descripcion</td>
-                                    <td>$foto</td>
-                                    <td>$pasos</td>
-                                    <td>$ingredientes</td>
-                                    <td>$tiempo_estimado</td>
-                                    <td>$created_at</td>
-                                    <td>$updated_at</td>
-                                    <td>
-                                        <a href="delete.php?id=$id">🗑️Borrar</a>
-                                        <a href="edit.php?id=$id">✏️Editar</a>
-                                    </td>
-                                </tr>
-                            EOF;
-                        }
-                    }
-echo <<<EOF
+$titulo = isset($_POST['apellido']) ? 'Lista de recetas (' . $_POST['apellido'] . ')' : 'Lista de recetas';
+
+    if ($recetas) {
+        foreach ($recetas as $receta) {
+            $id = escapar($receta["id"]);
+            $titulo = escapar($receta["titulo"]);
+            $descripcion = escapar($receta["descripcion"]);
+            $foto = escapar($receta["foto"]);
+            $pasos = escapar($receta["pasos"]);
+            $ingredientes = escapar($receta["ingredientes"]);
+            $tiempo_estimado = escapar($receta["tiempo_estimado"]);
+            $created_at = escapar($receta["created_at"]);
+            $updated_at = escapar($receta["updated_at"]);
+
+            echo <<<EOF
+                <tr>
+                    <td>$id</td>
+                    <td>$titulo</td>
+                    <td>$descripcion</td>
+                    <td>$foto</td>
+                    <td>$pasos</td>
+                    <td>$ingredientes</td>
+                    <td>$tiempo_estimado</td>
+                    <td>$created_at</td>
+                    <td>$updated_at</td>
+                    <td>
+                        <a href="delete.php?id=$id">🗑️Borrar</a>
+                        <a href="edit.php?id=$id">✏️Editar</a>
+                    </td>
+                </tr>
+            EOF;
+        }
+    }
+    echo <<<EOF
                     <tbody>
                 </table>
             </div>
